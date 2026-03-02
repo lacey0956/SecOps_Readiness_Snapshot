@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Security Operations Readiness Snapshot</title>
+   <script src="https://cdn.tailwindcss.com"></script>
+   <style>
+       @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+      
+       body {
+           font-family: 'Noto Sans TC', sans-serif;
+           background-color: #000000;
+           color: #ffffff;
+           background-image: radial-gradient(circle at 90% 10%, rgba(66, 133, 244, 0.15) 0%, transparent 40%),
+                             radial-gradient(circle at 10% 90%, rgba(251, 188, 5, 0.1) 0%, transparent 40%);
+           min-height: 100vh;
+       }
+
+
+       .glass-card {
+           background: rgba(255, 255, 255, 0.05);
+           backdrop-filter: blur(10px);
+           border: 1px solid rgba(255, 255, 255, 0.1);
+           border-radius: 1.5rem;
+       }
+
+
+       .option-card {
+           transition: all 0.3s ease;
+           cursor: pointer;
+           border: 2px solid transparent;
+       }
+
+
+       .option-card:hover {
+           background: rgba(255, 255, 255, 0.1);
+           transform: translateY(-2px);
+       }
+
+
+       .option-card.selected {
+           background: rgba(66, 133, 244, 0.2);
+           border-color: #4285F4;
+       }
+
+
+       .btn-primary {
+           background: linear-gradient(90deg, #4285F4, #34A853);
+           transition: opacity 0.3s;
+       }
+
+
+       .btn-primary:hover {
+           opacity: 0.9;
+       }
+
+
+       .progress-bar {
+           height: 4px;
+           background: rgba(255, 255, 255, 0.1);
+           border-radius: 2px;
+           overflow: hidden;
+       }
+
+
+       .progress-fill {
+           height: 100%;
+           background: #4285F4;
+           transition: width 0.4s ease;
+       }
+
+
+       /* 隱藏捲軸但保持功能 */
+       ::-webkit-scrollbar {
+           width: 6px;
+       }
+       ::-webkit-scrollbar-track {
+           background: transparent;
+       }
+       ::-webkit-scrollbar-thumb {
+           background: rgba(255, 255, 255, 0.2);
+           border-radius: 10px;
+       }
+
+
+       .level-badge {
+           font-size: 1.5rem;
+           padding: 0.5rem 2.5rem;
+           border-radius: 9999px;
+           font-weight: 800;
+           letter-spacing: 0.1em;
+           display: inline-block;
+           margin-bottom: 1rem;
+           border: 2px solid currentColor;
+       }
+   </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-12 gap-6 border-b border-white/10 pb-6">
+            <div class="flex items-center">
+                <div class="h-10 md:h-12">
+                    <img src="Header.png" 
+                         alt="Master Concept & Google Cloud" 
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                         class="h-full w-auto object-contain">
+                    <div style="display:none;" class="items-center gap-3 font-bold text-white h-full">
+                        <span class="text-orange-500">Master Concept</span>
+                        <span class="text-gray-500">|</span>
+                        <span class="text-white">Google Cloud</span>
+                    </div>
+                </div>
+            </div>
+            <h1 class="text-sm md:text-lg font-bold tracking-wider text-gray-300 uppercase text-center md:text-right">
+                Security Operations <br class="md:hidden"> Readiness Snapshot
+            </h1>
+        </header>
+
+        <main id="app-container" class="relative">
+            <section id="setup-section" class="glass-card p-8 md:p-12 text-center">
+                <h2 class="text-3xl font-bold mb-4">開始資安營運成熟度診斷</h2>
+                <p class="text-gray-400 mb-8">請輸入客戶基本資訊以開始盤點 (約需 10-15 分鐘)</p>
+                
+                <div class="max-w-md mx-auto space-y-4 text-left">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">客戶公司名稱</label>
+                        <input type="text" id="client-name" class="w-full bg-white/5 border border-white/10 rounded-lg p-3 focus:outline-none focus:border-blue-500 text-white" placeholder="例如：思想科技">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">負責業務姓名</label>
+                        <input type="text" id="sales-name" class="w-full bg-white/5 border border-white/10 rounded-lg p-3 focus:outline-none focus:border-blue-500 text-white" placeholder="Lacey">
+                    </div>
+                    <button onclick="startDiagnostic()" class="w-full btn-primary mt-6 py-4 rounded-xl font-bold text-lg shadow-lg transform transition hover:scale-[1.02]">進入診斷問卷</button>
+                </div>
+            </section>
+
+           <!-- Diagnostic Section (Hidden initially) -->
+           <section id="diagnostic-section" class="hidden glass-card p-6 md:p-10">
+               <div class="flex justify-between items-end mb-6">
+                   <div>
+                       <span id="question-category" class="text-blue-400 font-medium text-sm tracking-widest uppercase">Category</span>
+                       <h2 id="question-title" class="text-2xl font-bold mt-1">Question Title</h2>
+                   </div>
+                   <div class="text-right">
+                       <span class="text-gray-500 text-sm">進度 <span id="current-step">1</span> / 8</span>
+                   </div>
+               </div>
+              
+               <div class="progress-bar mb-10">
+                   <div id="progress-fill" class="progress-fill" style="width: 12.5%;"></div>
+               </div>
+
+
+               <div id="options-container" class="space-y-4">
+                   <!-- Options will be injected here -->
+               </div>
+
+
+               <div class="flex justify-between mt-10">
+                   <button id="prev-btn" onclick="prevQuestion()" class="px-6 py-2 text-gray-400 hover:text-white transition invisible">← 上一題</button>
+                   <button id="next-btn" onclick="nextQuestion()" class="px-8 py-3 bg-white/10 rounded-lg font-medium hover:bg-white/20 transition disabled:opacity-30" disabled>下一題</button>
+               </div>
+           </section>
+
+
+           <!-- Result Section (Hidden initially) -->
+           <section id="result-section" class="hidden">
+               <div class="glass-card p-8 md:p-12 mb-6">
+                   <div id="result-badge" class="level-badge">Level X</div>
+                   <h2 id="result-status-title" class="text-4xl font-extrabold mb-8 text-white tracking-tight">Result Title</h2>
+                  
+                   <div class="grid md:grid-cols-2 gap-10">
+                       <div class="space-y-6">
+                           <div>
+                               <h3 class="text-blue-400 font-bold mb-3 text-xl">現況盤點摘要</h3>
+                               <div id="result-description" class="text-gray-200 leading-relaxed whitespace-pre-line text-lg">
+                                   <!-- Description goes here -->
+                               </div>
+                           </div>
+                       </div>
+                       <div class="bg-white/5 rounded-2xl p-8 border border-white/5 flex flex-col justify-center">
+                           <h3 class="text-green-400 font-bold mb-4 text-xl">建議下一步</h3>
+                           <p id="result-next-step" class="text-white leading-relaxed text-lg">
+                               <!-- Next step goes here -->
+                           </p>
+                       </div>
+                   </div>
+               </div>
+
+
+               <!-- CRM Note Section (Collapsible - Internal Use Only) -->
+               <div class="glass-card overflow-hidden bg-white/[0.02] border-white/5">
+                   <button onclick="toggleCRM()" class="w-full flex justify-between items-center p-4 hover:bg-white/5 transition opacity-40 hover:opacity-100">
+                       <span class="text-xs font-medium flex items-center gap-2 text-gray-500">
+                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>
+                           CRM 記錄摘要 (Internal Use Only)
+                       </span>
+                       <svg id="crm-chevron" class="transition-transform duration-300 text-gray-600" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                   </button>
+                   <div id="crm-content" class="hidden p-6 pt-0">
+                       <textarea id="crm-text" readonly class="w-full h-40 bg-black/60 border border-white/5 rounded-lg p-4 text-[10px] font-mono text-gray-600 focus:outline-none"></textarea>
+                       <button onclick="copyCRM()" class="mt-4 px-3 py-1 bg-white/5 text-gray-500 border border-white/10 rounded text-[10px] hover:bg-white/10 transition">複製記錄內容</button>
+                   </div>
+               </div>
+
+
+               <div class="text-center mt-12">
+                   <button onclick="location.reload()" class="inline-flex items-center gap-2 px-10 py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white font-bold transition-all transform hover:scale-105 shadow-xl">
+                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M3 21v-5h5"></path></svg>
+                       重新開始新的診斷
+                   </button>
+               </div>
+           </section>
+       </main>
+
+
+       <!-- Footer -->
+       <footer class="mt-12 text-center text-gray-600 text-xs border-t border-white/5 pt-6">
+           &copy; 2026 Master Concept | Google Cloud Partner. Internal Sales Tool.
+       </footer>
+   </div>
+
+
+   <script>
+       // --- Data ---
+       const questions = [
+           {
+               category: "1. 日誌與可視性 (Log Visibility)",
+               title: "目前企業內部的安全日誌如何存放與管理？",
+               options: [
+                   { text: "日誌分散在各設備，需要時才人工查詢", score: 2 },
+                   { text: "有集中 Log Server，但缺乏跨系統關聯分析", score: 1 },
+                   { text: "有集中平台，可關聯部分資料來源", score: 0 }
+               ]
+           },
+           {
+               category: "2. 告警處理 (Alert Triage)",
+               title: "團隊每天如何處理來自不同資安設備的告警？",
+               options: [
+                   { text: "告警過多，人工篩選，容易疲勞", score: 2 },
+                   { text: "有基本優先排序，但仍需大量人工判斷", score: 1 },
+                   { text: "有明確分級機制與部分自動化", score: 0 }
+               ]
+           },
+           {
+               category: "3. 威脅情境 (Context)",
+               title: "當發現異常 IP 或 Domain 時，目前的調查流程為何？",
+               options: [
+                   { text: "需要人工查 IP/Domain 是否惡意", score: 2 },
+                   { text: "有訂閱情資，但未自動比對內部告警", score: 1 },
+                   { text: "情資可自動整合並標示風險等級", score: 0 }
+               ]
+           },
+           {
+               category: "4. 調查流程 (Investigation)",
+               title: "完成一個安全事件的完整調查（追蹤攻擊路徑）平均需時多久？",
+               options: [
+                   { text: "調查需切換多個系統，耗時數小時", score: 2 },
+                   { text: "有部分工具整合，但缺乏完整攻擊鏈視圖", score: 1 },
+                   { text: "可在單一介面查看大部分關聯資訊", score: 0 }
+               ]
+           },
+           {
+               category: "5. 回應機制 (Response)",
+               title: "確認威脅後，採取隔離或阻斷動作的標準作業程序？",
+               options: [
+                   { text: "依賴人工處理", score: 2 },
+                   { text: "有 SOP，但仍仰賴資深人員判斷", score: 1 },
+                   { text: "部分常見情境已有 Playbook", score: 0 }
+               ]
+           },
+           {
+               category: "6. 團隊負擔 (Team Load)",
+               title: "負責資安監控與回應的人員目前的工作負載狀況？",
+               options: [
+                   { text: "IT 團隊已接近飽和", score: 2 },
+                   { text: "有專人處理但時間有限", score: 1 },
+                   { text: "有餘裕進行主動威脅獵捕", score: 0 }
+               ]
+           },
+           {
+               category: "7. 跨端整合 (Integration)",
+               title: "端點(EDR)、網路(FW)與雲端(Cloud)日誌之間的整合程度？",
+               options: [
+                   { text: "工具各自為政", score: 2 },
+                   { text: "部分整合但仍有盲區", score: 1 },
+                   { text: "大部分事件可跨領域關聯", score: 0 }
+               ]
+           },
+           {
+               category: "8. 攻擊準備度 (Readiness)",
+               title: "若今天發生重大勒索病毒攻擊，團隊對早期發現與阻斷的信心？",
+               options: [
+                   { text: "發生攻擊可能需數天恢復", score: 2 },
+                   { text: "有 DR，但對偵測與阻斷信心不足", score: 1 },
+                   { text: "有能力在早期阻斷大部分攻擊", score: 0 }
+               ]
+           }
+       ];
+
+
+       const resultLevels = {
+           L1: {
+               badge: "Level 1",
+               title: "Structured but Expandable",
+               bg: "bg-green-600/10 text-green-400 border-green-500",
+               description: "從盤點結果來看，您目前的日誌管理、告警處理與調查流程已具備基礎穩定度，整體營運架構並未出現明顯瓶頸。\n\n這代表您的團隊在日常營運層面具備良好防守能力。\n\n不過，在當前威脅環境快速演變的情況下，真正拉開差距的，往往不是工具數量，而是：\n• 是否掌握產業最新攻擊樣態\n• 是否能預判攻擊趨勢\n• 是否具備主動獵捕能力",
+               next: "若有興趣，我們可以分享更多產業案例，協助您了解產業成熟企業如何進化。"
+           },
+           L2: {
+               badge: "Level 2",
+               title: "Operational Friction",
+               bg: "bg-orange-600/10 text-orange-400 border-orange-500",
+               description: "目前營運模式顯示存在部分「營運摩擦力」：\n• 調查流程存在跨系統切換\n• 告警情境需人工補強\n• IT 團隊承擔一定程度壓力\n\n這代表您已具備工具基礎，但尚未完全釋放其整合效益。在這個階段，提升「可視性 + 情境關聯 + 初步自動化」，通常能顯著降低調查時間與人力成本。",
+               next: "安排一次 Threat Assessment Workshop\n→ 對齊 1-2 個高價值 Use Case\n→ 評估是否適合進入 PoC"
+           },
+           L3: {
+               badge: "Level 3",
+               title: "Operational Risk Threshold",
+               bg: "bg-red-600/10 text-red-400 border-red-500",
+               description: "從盤點結果看來，目前的營運負荷處於較高位：\n• 營運複雜度高，跨平台調查耗時\n• 人工調查與回應成本明顯\n• 情境整合需求迫切\n\n這類企業若持續依賴人工流程，長期將面臨擴展性與回應速度瓶頸。導入自動化劇本與情資整合，往往能在短期內改善告警處理效率與早期阻斷能力。",
+               next: "進行 PoC (SecOps + GTI)，驗證實際調查時間縮短幅度與威脅獵捕的可行性。"
+           }
+       };
+
+
+       // --- State ---
+       let currentStep = 0;
+       let answers = [];
+       let clientInfo = { name: "", sales: "" };
+
+
+       // --- Logic ---
+       function startDiagnostic() {
+           const nameInput = document.getElementById('client-name').value;
+           const salesInput = document.getElementById('sales-name').value;
+          
+           if (!nameInput) {
+               alert("請輸入客戶公司名稱");
+               return;
+           }
+          
+           clientInfo.name = nameInput;
+           clientInfo.sales = salesInput || "未填寫";
+          
+           document.getElementById('setup-section').classList.add('hidden');
+           document.getElementById('diagnostic-section').classList.remove('hidden');
+           renderQuestion();
+       }
+
+
+       function renderQuestion() {
+           const q = questions[currentStep];
+           document.getElementById('question-category').innerText = q.category;
+           document.getElementById('question-title').innerText = q.title;
+           document.getElementById('current-step').innerText = currentStep + 1;
+           document.getElementById('progress-fill').style.width = `${((currentStep + 1) / 8) * 100}%`;
+          
+           const container = document.getElementById('options-container');
+           container.innerHTML = '';
+          
+           q.options.forEach((opt, idx) => {
+               const div = document.createElement('div');
+               div.className = `option-card p-5 rounded-xl border border-white/10 ${answers[currentStep]?.index === idx ? 'selected' : ''}`;
+               div.innerHTML = `<span class="text-lg">${opt.text}</span>`;
+               div.onclick = () => selectOption(idx, opt.score);
+               container.appendChild(div);
+           });
+
+
+           document.getElementById('next-btn').disabled = answers[currentStep] === undefined;
+           document.getElementById('prev-btn').classList.toggle('invisible', currentStep === 0);
+          
+           if (currentStep === questions.length - 1) {
+               document.getElementById('next-btn').innerText = "查看診斷結果";
+           } else {
+               document.getElementById('next-btn').innerText = "下一題";
+           }
+       }
+
+
+       function selectOption(index, score) {
+           answers[currentStep] = { index, score };
+           renderQuestion();
+       }
+
+
+       function nextQuestion() {
+           if (currentStep < questions.length - 1) {
+               currentStep++;
+               renderQuestion();
+           } else {
+               calculateResult();
+           }
+       }
+
+
+       function prevQuestion() {
+           if (currentStep > 0) {
+               currentStep--;
+               renderQuestion();
+           }
+       }
+
+
+       function calculateResult() {
+           const baseScore = 8;
+           const totalScore = answers.reduce((sum, ans) => sum + ans.score, baseScore);
+          
+           let levelKey = "L1";
+           if (totalScore >= 19) levelKey = "L3";
+           else if (totalScore >= 14) levelKey = "L2";
+          
+           const level = resultLevels[levelKey];
+          
+           document.getElementById('diagnostic-section').classList.add('hidden');
+           document.getElementById('result-section').classList.remove('hidden');
+          
+           const badge = document.getElementById('result-badge');
+           badge.innerText = level.badge;
+           badge.className = `level-badge ${level.bg}`;
+          
+           document.getElementById('result-status-title').innerText = level.title;
+           document.getElementById('result-description').innerText = level.description;
+           document.getElementById('result-next-step').innerText = level.next;
+          
+           generateCRMText(totalScore, levelKey, level);
+       }
+
+
+       function generateCRMText(score, levelKey, levelData) {
+           let summary = `【Security Operations Readiness Snapshot】\n`;
+           summary += `客戶名稱：${clientInfo.name}\n`;
+           summary += `負責業務：${clientInfo.sales}\n`;
+           summary += `診斷日期：${new Date().toLocaleDateString('zh-TW')}\n`;
+           summary += `------------------------------------------\n`;
+           summary += `成熟度評級：${levelData.badge} - ${levelData.title}\n`;
+           summary += `診斷細節：\n`;
+          
+           questions.forEach((q, i) => {
+               summary += `${q.category.split('.')[0]}. ${q.options[answers[i].index].text}\n`;
+           });
+          
+           summary += `------------------------------------------\n`;
+           summary += `建議行動：${levelData.next}\n`;
+          
+           document.getElementById('crm-text').value = summary;
+       }
+
+
+       function toggleCRM() {
+           const content = document.getElementById('crm-content');
+           const chevron = document.getElementById('crm-chevron');
+           const isHidden = content.classList.contains('hidden');
+          
+           if (isHidden) {
+               content.classList.remove('hidden');
+               chevron.style.transform = 'rotate(180deg)';
+           } else {
+               content.classList.add('hidden');
+               chevron.style.transform = 'rotate(0deg)';
+           }
+       }
+
+
+       function copyCRM() {
+           const text = document.getElementById('crm-text');
+           text.select();
+           document.execCommand('copy');
+          
+           const btn = event.target;
+           const originalText = btn.innerText;
+           btn.innerText = "已複製";
+           setTimeout(() => btn.innerText = originalText, 2000);
+       }
+   </script>
+</body>
+</html>
